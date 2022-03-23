@@ -55,6 +55,11 @@ for site_id in cluster['site']:
             #* ship data to remote site
             push_core = "rsync " + "-r $WORKSPACE/BHT-Core " + site['username'] + "@" + site['ip_address'] + ":/var/www"
             os.system(push_core)
+            
+            # run setup script
+            run_core_script = "ssh " + site['username'] + "@" + site[
+                'ip_address'] + " 'cd /var/www/BHT-Core && ./core_setup.sh'"
+            os.system(run_core_script)
 
             result = Connection("" + site['username'] + "@" + site['ip_address'] + "").run('cd /var/www/BHT-Core && git describe', hide=True)
             
