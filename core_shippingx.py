@@ -27,7 +27,7 @@ def alert(url, params):
     r = requests.post(url, json=params, headers=headers)
     return r
 
-recipients = ["+265995246144","+265991450316", "+265998006237"]
+recipients = ["+265995246144"]
 
 #* Get cluster details
 cluster = get_xi_data('http://10.44.0.52/sites/api/v1/get_single_cluster/1')
@@ -56,9 +56,22 @@ for site_id in cluster['site']:
             push_core = "rsync " + "-r $WORKSPACE/BHT-Core " + site['username'] + "@" + site['ip_address'] + ":/var/www"
             os.system(push_core)
 
+            result = Connection("" + site['username'] + "@" + site['ip_address'] + "").run('cd /var/www/BHT-Core && git describe', hide=True)
+            
+            msg = "{0.stdout}"
+            
+            version = msg.format(result).strip()
+            
+            api_version = "v4.14.2"
+            
+            if api_version == version:
+                msgx = "Hi there,\n\nDeployment of Core to " + version + " for " + site['name'] + " completed succesfully.\n\nThanks!\nEGPAF HIS."
+            else:
+                msgx = "Hi there,\n\nSomething went wrong while checking out to the latest Core version. Current version is " + version + " for " + site['name'] + ".\n\nThanks!\nEGPAF HIS."
+            
             # send sms alert
             for recipient in recipients:
-                msg = "Hi there,\n\nDeployment of CORE to v5.0.5 for " + site['name'] + " completed succesfully.\n\nThanks!\nEGPAF HIS."
+                msg = "Hi there,\n\nDeployment of CORE to " + version + " for " + site['name'] + " completed succesfully.\n\nThanks!\nEGPAF HIS."
                 params = {
                     "api_key": os.getenv('API_KEY'),
                     "recipient": recipient,
